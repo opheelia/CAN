@@ -101,7 +101,28 @@ public class CANProtocol implements EDProtocol, Cloneable {
 			System.out.println(elements.nextElement());
 	}
 	
-	public void processEvent(Node node, int protocolID, Object event){}
+	//public Node randomNode(){}
+	
+	public void processEvent(Node node, int protocolID, Object event){
+		CANMessage m = (CANMessage) event;
+        switch (m.getType()) {
+        case CANMessage.JOIN:
+			System.out.println("CANProtocol : JOIN message");
+            protocolID.join();
+            break;
+		case CANMessage.LOOKUP:
+			System.out.println("CANProtocol : LOOKUP message");
+			protocolID.route();
+			break;
+		case CANMessage.UPDATE:
+			System.out.println("CANProtocol : UPDATE message");
+			break;
+		case CANMessage.TAKEOVER:
+			System.out.println("CANProtocol : TAKEOVER message");
+			break;
+			
+        }
+	}
 	
 	
     

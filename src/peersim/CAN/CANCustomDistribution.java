@@ -19,7 +19,7 @@ public class CANCustomDistribution implements peersim.core.Control {
     private static final String PAR_PROT = "protocol";
 
     private int protocolID;
-    private Random rnd;
+    private static Random rnd;
 
 /*----------------------------------------------------------------------
  * Constructeur
