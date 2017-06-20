@@ -56,7 +56,7 @@ public class CANInterval {
  * Méthodes
  * ---------------------------------------------------------------------
  */
-	// Retourne true si les intervalles sont contigues
+	// Return true if two intervals abut
 	public boolean isAbutted(CANInterval interval){
 		if((this.b == interval.a) || (interval.b == this.a)){
 			return true;
@@ -65,7 +65,7 @@ public class CANInterval {
 		}
 	}
 	
-	//Retourne true si les intervalles se recouvrent
+	//Return true if two intervals overlap
 	public boolean isOverlapped(CANInterval interval){
 		//si interval contenu dans this ou this contenu dans interval
 		if(((this.a <= interval.a) && (this.b >= interval.b)) || ((interval.a <= this.a) && (interval.b >= this.b))){
@@ -73,6 +73,19 @@ public class CANInterval {
 		} else {
 			return false;
 		}
+	}
+	
+	//Return true is Interval (considered as a simple point with coordinates [a;b]) belongs to a zone
+	public boolean belongsToZone(CANInterval zoneX, CANInterval zoneY){
+		if(((this.a>=zoneX.getA())&&(this.a<=zoneX.getB()))&&((this.b>=zoneY.getA())&&(this.b<=zoneY.getB()))){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	public String toString(){
+		return ("["+this.a+";"+this.b+"]");
 	}
 	
 /*----------------------------------------------------------------------

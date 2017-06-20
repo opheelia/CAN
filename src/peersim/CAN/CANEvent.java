@@ -1,5 +1,5 @@
 /*
- * CANMessage.java
+ * CANEvent.java
  * 
  * Copyright 2017 Ophelia <ophelia@ophelia-VirtualBox>
  * 
@@ -20,113 +20,58 @@
  * 
  * 
  */
-
 import peersim.config.*;
 import peersim.core.*;
+import peersim.core.Network;
 import peersim.edsim.*;
 import peersim.transport.*;
 import java.io.*;
 import java.util.*;
+import java.math.*;
 
-public class CANMessage {
+public class CANEvent implements Control{
 	
 /*----------------------------------------------------------------------
  * Attributs
  * ---------------------------------------------------------------------
- */	
- 
-	private long messID;
-	private int type;
-	private Node sender;
-	private Node receiver;
-	private String body;
+ */
 	
-	private static Random rnd;
-	private boolean already_init = false;
-	
-	public static final int LOOKUP = 0;
-	public static final int JOIN = 1;
-	public static final int UPDATE = 2;
-	public static final int TAKEOVER = 3;
+	private final static String PAR_PROT = "protocol";
+	private final int protocolID;
 	
 /*----------------------------------------------------------------------
  * Constructeur
  * ---------------------------------------------------------------------
- */  
- 
-	public CANMessage(Node s, Node r, int type){
-		this.sender = s;
-		this.receiver = r;
-		this.type = type;
-		this.body = "";
-		if(already_init=false){
-			rnd = new Random();
-			already_init=true;
-		}
-		this.messID = 0;
-	}
+ */
 	
-	public CANMessage(Node r, int type){
-		this.sender = null;
-		this.receiver = r;
-		this.type = type;
-		this.body = "";
-		this.messID = 0;
+	public CANEvent (String prefix){
+		protocolID = Configuration.getPid(prefix + "." + PAR_PROT);
 	}
 	
 /*----------------------------------------------------------------------
  * Méthodes
  * ---------------------------------------------------------------------
  */
- 
+	
+	public boolean execute(){
+		System.out.println("CANEvent : execute");
+		Node newcomer = (Node)Network.prototype.clone(); 
+		Network.add(newcomer);
+		System.out.println("CANEvent : new node added to Network");
+		int index = Network.size();
+		System.out.println("CANEvent : index = "+index);
+		((CANProtocol)(newcomer.getProtocol(protocolID))).giveNewID(newcomer);
+		CANMessage m = CANProtocol.joinMessage(newcomer);
+        EDSimulator.add(0, m, newcomer, protocolID);
+        System.out.println("CANEvent : Message JOIN added in queue");
+		
+        return false;
+	}
+	
+	
+	
 	
 		
-	
-/*----------------------------------------------------------------------
- * Getters et setters
- * ---------------------------------------------------------------------
- */
- 
-	public long getMessID(){
-		return this.messID;
-	}
-	
-	public void setMessID(long id){
-		this.messID = id;
-	}
-	
-	public int getType(){
-		return this.type;
-	}
-	
-	public void setType(int type){
-		this.type = type;
-	}
-	
-	public String getBody(){
-		return this.body;
-	}
-	
-	public void setBody(String body){
-		this.body = body;
-	}
-	
-	public int getLOOKUP(){
-		return LOOKUP;
-	}
-	
-	public int getJOIN(){
-		return JOIN;
-	}
-	
-	public int getUPDATE(){
-		return UPDATE;
-	}
-	
-	public int getTAKEOVER(){
-		return TAKEOVER;
-	}
-	
 	
 }
 

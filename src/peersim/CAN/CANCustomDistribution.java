@@ -8,9 +8,7 @@ import peersim.edsim.*;
 import peersim.transport.*;
 import java.io.*;
 
-//Attribue un ID à chaque noeud du Network
-
-public class CANCustomDistribution implements peersim.core.Control {
+public class CANCustomDistribution implements Control {
 
 /*----------------------------------------------------------------------
  * Attributs
@@ -26,9 +24,9 @@ public class CANCustomDistribution implements peersim.core.Control {
  * ---------------------------------------------------------------------
  */ 
 
-    public CANCustomDistribution(String prefix) {
-        protocolID = Configuration.getPid(prefix + "." + PAR_PROT);
-        rnd = new Random();
+	public CANCustomDistribution(String prefix) {
+		protocolID = Configuration.getPid(prefix + "." + PAR_PROT);
+		rnd = new Random();
     }
 
 /*----------------------------------------------------------------------
@@ -36,13 +34,14 @@ public class CANCustomDistribution implements peersim.core.Control {
  * ---------------------------------------------------------------------
  */
  
-    public boolean execute() {
-       long tmp;
-       for (int i = 0; i < Network.size(); ++i) {
-           tmp = rnd.nextLong();
-           ((CANProtocol)(Network.get(i).getProtocol(protocolID))).setNodeID(tmp);
-       }
-
-        return false;
-    }
+	public boolean execute() {
+		long tmp;
+		for (int i = 0; i < Network.size(); ++i) {
+			tmp = (long)(rnd.nextDouble()*10000);
+			if(tmp<0) tmp=-tmp;
+			((CANProtocol)(Network.get(i).getProtocol(protocolID))).setNodeID(tmp);
+		}
+		return false;
+	}
+    
 } 
