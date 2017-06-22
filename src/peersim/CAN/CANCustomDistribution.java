@@ -11,7 +11,7 @@ import java.io.*;
 public class CANCustomDistribution implements Control {
 
 /*----------------------------------------------------------------------
- * Attributs
+ * Attributes
  * ---------------------------------------------------------------------
  */
     private static final String PAR_PROT = "protocol";
@@ -20,7 +20,7 @@ public class CANCustomDistribution implements Control {
     private static Random rnd;
 
 /*----------------------------------------------------------------------
- * Constructeur
+ * Builder
  * ---------------------------------------------------------------------
  */ 
 
@@ -30,14 +30,14 @@ public class CANCustomDistribution implements Control {
     }
 
 /*----------------------------------------------------------------------
- * Méthodes
+ * Methods
  * ---------------------------------------------------------------------
  */
  
 	public boolean execute() {
 		long tmp;
 		for (int i = 0; i < Network.size(); ++i) {
-			tmp = (long)(rnd.nextDouble()*10000);
+			tmp = (long)(rnd.nextDouble()*100000);
 			if(tmp<0) tmp=-tmp;
 			((CANProtocol)(Network.get(i).getProtocol(protocolID))).setNodeID(tmp);
 		}

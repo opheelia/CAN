@@ -31,7 +31,7 @@ import java.util.*;
 public class CANMessage {
 	
 /*----------------------------------------------------------------------
- * Attributs
+ * Attributes
  * ---------------------------------------------------------------------
  */	
  
@@ -39,18 +39,18 @@ public class CANMessage {
 	private int type;
 	private Node sender;
 	private Node receiver;
-	private String body;
+	private Object body; //not useful now but perhaps later
 	
 	private static Random rnd;
 	private boolean already_init = false;
 	
-	public static final int LOOKUP = 0;
-	public static final int JOIN = 1;
-	public static final int UPDATE = 2;
-	public static final int TAKEOVER = 3;
+	public static final int JOIN = 0;
+	public static final int SHARE = 1;
+	public static final int SHARE_ANS = 2;
+
 	
 /*----------------------------------------------------------------------
- * Constructeur
+ * Builder
  * ---------------------------------------------------------------------
  */  
  
@@ -58,7 +58,6 @@ public class CANMessage {
 		this.sender = s;
 		this.receiver = r;
 		this.type = type;
-		this.body = "";
 		if(already_init=false){
 			rnd = new Random();
 			already_init=true;
@@ -66,16 +65,9 @@ public class CANMessage {
 		this.messID = 0;
 	}
 	
-	public CANMessage(Node r, int type){
-		this.sender = null;
-		this.receiver = r;
-		this.type = type;
-		this.body = "";
-		this.messID = 0;
-	}
 	
 /*----------------------------------------------------------------------
- * Méthodes
+ * Methods
  * ---------------------------------------------------------------------
  */
  
@@ -83,7 +75,7 @@ public class CANMessage {
 		
 	
 /*----------------------------------------------------------------------
- * Getters et setters
+ * Getter and setter
  * ---------------------------------------------------------------------
  */
  
@@ -95,6 +87,13 @@ public class CANMessage {
 		this.messID = id;
 	}
 	
+	public Node getSender(){
+		return this.sender;
+	}
+	public Node getReceiver(){
+		return this.receiver;
+	}
+	
 	public int getType(){
 		return this.type;
 	}
@@ -103,29 +102,15 @@ public class CANMessage {
 		this.type = type;
 	}
 	
-	public String getBody(){
+	public Object getBody(){
 		return this.body;
 	}
 	
-	public void setBody(String body){
+	public void setBody(Object body){
 		this.body = body;
 	}
 	
-	public int getLOOKUP(){
-		return LOOKUP;
-	}
 	
-	public int getJOIN(){
-		return JOIN;
-	}
-	
-	public int getUPDATE(){
-		return UPDATE;
-	}
-	
-	public int getTAKEOVER(){
-		return TAKEOVER;
-	}
 	
 	
 }

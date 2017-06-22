@@ -32,7 +32,7 @@ import java.math.*;
 public class CANEvent implements Control{
 	
 /*----------------------------------------------------------------------
- * Attributs
+ * Attributes
  * ---------------------------------------------------------------------
  */
 	
@@ -40,33 +40,38 @@ public class CANEvent implements Control{
 	private final int protocolID;
 	
 /*----------------------------------------------------------------------
- * Constructeur
+ * Builder
  * ---------------------------------------------------------------------
  */
 	
 	public CANEvent (String prefix){
 		protocolID = Configuration.getPid(prefix + "." + PAR_PROT);
+		System.out.println("CANEvent : protocol ID = "+protocolID);
 	}
 	
 /*----------------------------------------------------------------------
- * Méthodes
+ * Methods
  * ---------------------------------------------------------------------
  */
 	
 	public boolean execute(){
 		System.out.println("CANEvent : execute");
-		Node newcomer = (Node)Network.prototype.clone(); 
-		Network.add(newcomer);
-		System.out.println("CANEvent : new node added to Network");
-		int index = Network.size();
-		System.out.println("CANEvent : index = "+index);
-		((CANProtocol)(newcomer.getProtocol(protocolID))).giveNewID(newcomer);
-		CANMessage m = CANProtocol.joinMessage(newcomer);
-        EDSimulator.add(0, m, newcomer, protocolID);
-        System.out.println("CANEvent : Message JOIN added in queue");
-		
+		//affiche l'état du réseau
+		createNewNode();
         return false;
 	}
+	
+	public void createNewNode(){
+		Node newcomer = (Node)Network.prototype.clone(); 
+		Node bootstrap = Network.get(0);
+		Network.add(newcomer);
+		int index = Network.size();
+		//System.out.println("CANEvent : index = "+index);
+		((CANProtocol)(newcomer.getProtocol(protocolID))).giveNewID(newcomer);
+		CANMessage m = CANProtocol.joinMessage(newcomer,bootstrap);
+        EDSimulator.add(0, m, bootstrap, protocolID);
+        System.out.println("CANEvent : Message JOIN added in queue");
+    }
 	
 	
 	

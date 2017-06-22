@@ -75,14 +75,16 @@ public class CANInterval {
 		}
 	}
 	
-	//Return true is Interval (considered as a simple point with coordinates [a;b]) belongs to a zone
+	//Return true if this (considered as a simple point with coordinates [a;b]) belongs to a zone
 	public boolean belongsToZone(CANInterval zoneX, CANInterval zoneY){
-		if(((this.a>=zoneX.getA())&&(this.a<=zoneX.getB()))&&((this.b>=zoneY.getA())&&(this.b<=zoneY.getB()))){
+		System.out.println("belongsToZone : beginning of function");
+		if((this.getA()>=zoneX.getA())&&(this.getA()<=zoneX.getB())&&(this.getB()>=zoneY.getA())&&(this.getB()<=zoneY.getB())){
 			return true;
 		}else{
 			return false;
 		}
 	}
+	
 	
 	public String toString(){
 		return ("["+this.a+";"+this.b+"]");

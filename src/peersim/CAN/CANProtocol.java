@@ -32,12 +32,11 @@ import java.util.*;
 public class CANProtocol implements EDProtocol, Cloneable {
 	
 /*----------------------------------------------------------------------
- * Attributs
+ * Attributes
  * ---------------------------------------------------------------------
  */
 	
 	//Attributs propres au protocole
-	private final int CANID;
 	public static CANInterval[] fullZone;
 	private static String prefix = null;
 	private static final String PAR_TRANSPORT = "transport";
@@ -53,19 +52,21 @@ public class CANProtocol implements EDProtocol, Cloneable {
 	
     
 /*----------------------------------------------------------------------
- * Constructeur
+ * Builder and initialization
  * ---------------------------------------------------------------------
  */    
     
 	public CANProtocol(String prefix){
-		System.out.println("CANProtocol : Constructeur");
+		System.out.println("CANProtocol : Builder");
 		CANProtocol.prefix = prefix;
 		Random rnd = new Random();
-		CANID = rnd.nextInt();
 		init();
 		this.neighbors = new Hashtable();
 		this.nodeZone = new CANInterval[2];
-		this.energy = Configuration.getLong(prefix + "." + PAR_ENERGY, energy);
+		long energymax = Configuration.getLong(prefix + "." + PAR_ENERGY, energy);
+		this.energy = (long)(rnd.nextDouble()*energymax);
+		System.out.println("CANProtocol : New node energy = "+this.energy);
+		
 	}
 	
 	private void init() {
@@ -103,13 +104,14 @@ public class CANProtocol implements EDProtocol, Cloneable {
 		float x = (float)(rnd.nextDouble()*max);
 		float y = (float)(rnd.nextDouble()*max);
 		CANInterval p = new CANInterval(x,y);
-		System.out.println("randomP : x="+x+", y="+y);
+		System.out.println("randomP : x="+p.getA()+", y="+p.getB());
 		return p;
 	}
 	
 	public Node whoHasP(CANInterval p){
 		for(int i=0; i < Network.size();i++){
-			CANInterval[] thisNodeZone = ((CANProtocol)((Network.get(i)).getProtocol(0))).getNodeZone();
+			CANInterval[] thisNodeZone = getCAN(Network.get(i)).getNodeZone();
+			//System.out.println("whoHasP : thisNodeZone [0] et [1] = "+thisNodeZone[0]+" et "+thisNodeZone[1]);
 			if(p.belongsToZone(thisNodeZone[0],thisNodeZone[1])){
 				return (Network.get(i));
 			}
@@ -118,24 +120,17 @@ public class CANProtocol implements EDProtocol, Cloneable {
 		return null;
 	}
 	
-	public static Node bootstrapNode(){
-		if(Network.size()==0) return null;
-		int r = CommonState.r.nextInt(Network.size());
-		return (Node)(Network.get(r));
-	}
-	
 	public void giveNewID(Node n){
 		Random rnd = new Random();
-		long id = (long)(rnd.nextDouble()*10000);
-		System.out.println("giveNewID : ID = "+id);
+		long id = (long)(rnd.nextDouble()*100000);
+		System.out.println("giveNewID : ID = "+id+", let's see if it's not already given");
 		if(id<0) id=-id;
 		for(int i=0; i < Network.size();i++){
 			if(i!=n.getIndex()){
-				System.out.println("i= "+i+" , index de n = "+n.getIndex());
 				long friendID = ((CANProtocol)((Network.get(i)).getProtocol(0))).getNodeID();
-				System.out.println("Comparaison : "+id+" et "+friendID);
+				System.out.println("Comparison : "+id+" and "+friendID);
 				if(id == friendID){
-					id = (long)(rnd.nextDouble()*10000);
+					id = (long)(rnd.nextDouble()*100000);
 					if(id<0) id=-id;
 					//i=0;
 				}
@@ -144,27 +139,37 @@ public class CANProtocol implements EDProtocol, Cloneable {
 		setNodeID(id);
 	}
 	
-	public static CANMessage joinMessage(Node newcomer){
-		Node bootstrap = bootstrapNode();
-		CANMessage m = new CANMessage(newcomer, bootstrap, 1);
+	public static Node bootstrapNode(){
+		if(Network.size()<2) return null;
+		int r = CommonState.r.nextInt(Network.size());
+		return (Node)(Network.get(r));
+	}
+	
+	public static CANMessage joinMessage(Node newcomer, Node bootstrap){
+		long id;
+		
+		//do {
+			//bootstrap = bootstrapNode();
+		//} while(id == getCAN(newcomer).getNodeID());
+		CANMessage m = new CANMessage(newcomer, bootstrap, CANMessage.JOIN);
 		return m;
 	}
 	
 /**.....................................................................
- * Routings methods
+ * Message methods
  * ...................................................................*/
 
-	//Here we suppose that m type is JOIN
 	public void sendMessage(CANMessage m){
 		System.out.println("*****************************************");
-		System.out.println("sendMessage : node n°"+(CANProtocol)(m.sender.getProtocol(0)).nodeID+" sends JOIN message to node n°"+(CANProtocol)(m.receiver.getProtocol(0)).nodeID);
+		System.out.println("sendMessage : node n°"+((CANProtocol)(m.getSender().getProtocol(0))).nodeID+" sends message (type="+m.getType()+") to node n°"+((CANProtocol)(m.getReceiver().getProtocol(0))).nodeID);
 		System.out.println("*****************************************");
-		(CANProtocol)(m.sender.getProtocol(0)).receiveMessage(m);
+		//((CANProtocol)(m.sender.getProtocol(0))).receiveMessage(m);
 	}
 	
 	public void receiveMessage(CANMessage m){
-		System.out.println("receiveMessage : node n°"+(CANProtocol)(m.receiver.getProtocol(0)).nodeID+" receives JOIN message from node n°"+(CANProtocol)(m.sender.getProtocol(0)).nodeID);
-		System.out.println("*****************************************");
+		System.out.println("******************* RECEIPT MESSAGE *************************");
+		System.out.println("receiveMessage : node n°"+((CANProtocol)(m.getReceiver().getProtocol(0))).nodeID+" receives message (type="+m.getType()+") from node n°"+((CANProtocol)(m.getSender().getProtocol(0))).nodeID);
+		System.out.println("*************************************************************");
 	}
 		
 
@@ -200,26 +205,123 @@ public class CANProtocol implements EDProtocol, Cloneable {
 			System.out.println(elements.nextElement());
 	}
 	
+	public void recoverZone(Node newcomer, Node leaver){
+		CANProtocol pNew = getCAN(newcomer);
+		CANProtocol pOld = getCAN(leaver);
+		CANInterval[] theZone = pOld.getNodeZone();
+		pNew.setNodeZone(theZone[0],theZone[1]);
+		System.out.println("**********ZONE RECOVERING***********");
+	}
 	
+	public Node whoHasLowEnergy(int notThisOne){
+		for(int i=1;i<Network.size();i++){
+			if(((getCAN(Network.get(i)).getEnergy()) < 5) && ((Network.get(i)).getIndex() != notThisOne) ){
+				return (Network.get(i));
+			}
+		}
+		return null;
+	}
+		
+	//awful way to do that but no time to improve
+	public CANInterval[] shareZone(CANInterval i1, CANInterval i2, CANInterval p){
+		
+		System.out.println("shareZone : at the beginning, i1="+i1.toString()+", i2="+i2.toString()+", p="+p.toString());
+		
+		CANInterval[] toReturn = new CANInterval[4];
+		CANInterval[] newNodeZone = new CANInterval[2];
+		CANInterval[] oldNodeZone = new CANInterval[2];
+		float average;
+		if((i1.getB() - i1.getA()) >= (i2.getB() - i2.getA())){ // if X width is bigger than Y one
+			newNodeZone[1]=i2;
+			oldNodeZone[1]=i2;
+			average = (i1.getA() + i1.getB())/2;
+			if(p.getA() <= average){
+				newNodeZone[0]=new CANInterval(i1.getA(), average);
+				oldNodeZone[0]=new CANInterval(average, i1.getB());
+				//i1.setA(average);
+				//System.out.println("P at the left : i1="+i1.toString()+", i2="+i2.toString());
+			} else {
+				newNodeZone[0]=new CANInterval(average, i1.getB());
+				oldNodeZone[0]=new CANInterval(i1.getA(),average);
+				//i1.setB(average);
+				//System.out.println("P at the right : i1="+i1.toString()+", i2="+i2.toString());
+			}
+		} 
+		else 
+		{ //if Y width is bigger than X one
+			newNodeZone[0]=i1;
+			oldNodeZone[0]=i1;
+			average = (i2.getA() + i2.getB())/2;
+			if(p.getB() <= average) {
+				newNodeZone[1]=new CANInterval(i2.getA(), average);
+				oldNodeZone[1]=new CANInterval(average, i2.getB());
+				//System.out.println("P at the left : i1="+i1.toString()+", i2="+i2.toString());
+			} else {
+				newNodeZone[1]=new CANInterval(average, i2.getB());
+				oldNodeZone[1]=new CANInterval(i2.getA(), average);
+				//System.out.println("P at the right : i1="+i1.toString()+", i2="+i2.toString());
+			}
+		}
+		System.out.println("New node zone : [ "+newNodeZone[0].toString()+" , "+newNodeZone[1].toString()+" ]");
+		System.out.println("Old node zone : [ "+oldNodeZone[0].toString()+" , "+oldNodeZone[1].toString()+" ]");
+		toReturn[0]=newNodeZone[0];
+		toReturn[1]=newNodeZone[1];
+		toReturn[2]=oldNodeZone[0];
+		toReturn[3]=oldNodeZone[1];
+		return toReturn;
+	}
+	
+/**.....................................................................
+ * Event method
+ * ...................................................................*/
+ 
 	public void processEvent(Node node, int protocolID, Object event){
-		System.out.println("CANProtocol : processEvent");
-		if((event instanceof CANMessage) && (protocolID==CANID)){
+		if((event instanceof CANMessage) && (protocolID==0)){
 			CANMessage m = (CANMessage) event;
+			this.receiveMessage(m);
 			switch (m.getType()) {
 				case CANMessage.JOIN:
-					System.out.println("CANProtocol : JOIN message");
-					//this.join(node);
+					System.out.println("");
+					System.out.println("***************  processEvent : JOIN message  **************************");
+
+					boolean replace = false;
+
+					Node leaver = whoHasLowEnergy((m.getSender()).getIndex());
+					if(leaver != null){
+						replace = true;
+						recoverZone(m.getSender(),leaver);
+						Network.remove(leaver.getIndex());
+						System.out.println("Node "+(getCAN(m.getSender())).getNodeID()+" takes node "+getCAN(leaver).getNodeID()+" zone (his energy was "+getCAN(leaver).getEnergy()+"), who is now DEAD");
+						System.out.println("*****************************************");
+					}
+					
+					if(replace == false){
+						CANInterval p = randomP();
+						Node pOwner = whoHasP(p);
+						CANMessage shareMessage = new CANMessage(m.getSender(),pOwner,CANMessage.SHARE);
+						shareMessage.setBody(p);
+						EDSimulator.add(0, shareMessage, pOwner, protocolID);
+					}					
+					System.out.println("");
+					
 					break;
-				case CANMessage.LOOKUP:
-					System.out.println("CANProtocol : LOOKUP message");
-					//route()
+				case CANMessage.SHARE:
+					System.out.println("");
+					System.out.println("******************* processEvent : SHARE message ************************");
+					CANInterval p = (CANInterval)m.getBody();
+					CANInterval[] newZone = this.shareZone((this.getNodeZone())[0], (this.getNodeZone())[1], p);
+					this.setNodeZone(newZone[0],newZone[1]);
+					CANMessage answer = new CANMessage(m.getReceiver(),m.getSender(),CANMessage.SHARE_ANS);
+					answer.setBody(newZone);
+					EDSimulator.add(0,answer,m.getSender(),protocolID);
+					System.out.println("");
 					break;
-				case CANMessage.UPDATE:
-					System.out.println("CANProtocol : UPDATE message");
-					break;
-				case CANMessage.TAKEOVER:
-					System.out.println("CANProtocol : TAKEOVER message");
-					break;
+				case CANMessage.SHARE_ANS:
+					System.out.println("");
+					System.out.println("**************** processEvent : SHARE ANSWER message *********************");
+					CANInterval[] zone = (CANInterval[])m.getBody();
+					System.out.println("New zone : ["+zone[0].toString()+" , "+zone[1].toString()+"]");
+					System.out.println("");
 			}
         }
 	}
@@ -227,7 +329,7 @@ public class CANProtocol implements EDProtocol, Cloneable {
 	
     
 /*----------------------------------------------------------------------
- * Getters et setters
+ * Getter and setter
  * ---------------------------------------------------------------------
  */
  
@@ -235,7 +337,7 @@ public class CANProtocol implements EDProtocol, Cloneable {
 		return this.nodeID;
 	}
 	public void setNodeID(long newID){
-		System.out.println("ID "+newID+" attribué");
+		System.out.println("ID "+newID+" given");
 		this.nodeID = newID;
 	}
 	
@@ -246,19 +348,25 @@ public class CANProtocol implements EDProtocol, Cloneable {
 		this.nodeZone[0] = new CANInterval(x1,x2);
 		this.nodeZone[1] = new CANInterval(y1,y2);
 	}
-	
 	public void setNodeZone(CANInterval i1, CANInterval i2){
 		this.nodeZone[0]=i1;
 		this.nodeZone[1]=i2;
 	}
 	
+	public static CANInterval[] getFullZone(){
+		return fullZone;
+	}
+	
 	public Hashtable getNeighbors() {
         return this.neighbors;
     }
+    
+    public long getEnergy(){
+		return this.energy;
+	}
 	
-	public final CANProtocol getCAN(Node n) {
-		int index = n.getIndex();
-        return ((CANProtocol) (Network.get(index)).getProtocol(CANID));
+	public static CANProtocol getCAN(Node n) {
+        return ((CANProtocol) n.getProtocol(0));
     }
     
     
