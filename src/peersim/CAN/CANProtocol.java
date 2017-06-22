@@ -65,7 +65,7 @@ public class CANProtocol implements EDProtocol, Cloneable {
 		this.nodeZone = new CANInterval[2];
 		long energymax = Configuration.getLong(prefix + "." + PAR_ENERGY, energy);
 		this.energy = (long)(rnd.nextDouble()*energymax);
-		System.out.println("CANProtocol : New node energy = "+this.energy);
+		//System.out.println("CANProtocol : New node energy = "+this.energy);
 		
 	}
 	
@@ -104,7 +104,7 @@ public class CANProtocol implements EDProtocol, Cloneable {
 		float x = (float)(rnd.nextDouble()*max);
 		float y = (float)(rnd.nextDouble()*max);
 		CANInterval p = new CANInterval(x,y);
-		System.out.println("randomP : x="+p.getA()+", y="+p.getB());
+		//System.out.println("randomP : x="+p.getA()+", y="+p.getB());
 		return p;
 	}
 	
