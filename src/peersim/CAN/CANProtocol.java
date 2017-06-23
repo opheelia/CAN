@@ -36,7 +36,7 @@ public class CANProtocol implements EDProtocol, Cloneable {
  * ---------------------------------------------------------------------
  */
 	
-	//Attributs propres au protocole
+	//Protocol attributes
 	public static CANInterval[] fullZone;
 	private static String prefix = null;
 	private static final String PAR_TRANSPORT = "transport";
@@ -44,10 +44,10 @@ public class CANProtocol implements EDProtocol, Cloneable {
 	private static final String PAR_ZONE = "zone";	
 	private static boolean ALREADY_INSTALLED = false;
 	
-	//Attributs propres aux noeuds
+	//Node attributes
 	private long nodeID;
 	private CANInterval[] nodeZone;
-	private Hashtable neighbors; //IP remplacé par ID dans Peersim, zone accessible dans Node
+	private Hashtable neighbors;
 	private long energy;
 	
     
@@ -111,7 +111,7 @@ public class CANProtocol implements EDProtocol, Cloneable {
 	public Node whoHasP(CANInterval p){
 		for(int i=0; i < Network.size();i++){
 			CANInterval[] thisNodeZone = getCAN(Network.get(i)).getNodeZone();
-			//System.out.println("whoHasP : thisNodeZone [0] et [1] = "+thisNodeZone[0]+" et "+thisNodeZone[1]);
+			System.out.println("whoHasP : thisNodeZone = ["+thisNodeZone[0]+" , "+thisNodeZone[1]+"], p="+p.getA()+","+p.getB());
 			if(p.belongsToZone(thisNodeZone[0],thisNodeZone[1])){
 				return (Network.get(i));
 			}
@@ -238,13 +238,9 @@ public class CANProtocol implements EDProtocol, Cloneable {
 			if(p.getA() <= average){
 				newNodeZone[0]=new CANInterval(i1.getA(), average);
 				oldNodeZone[0]=new CANInterval(average, i1.getB());
-				//i1.setA(average);
-				//System.out.println("P at the left : i1="+i1.toString()+", i2="+i2.toString());
 			} else {
 				newNodeZone[0]=new CANInterval(average, i1.getB());
 				oldNodeZone[0]=new CANInterval(i1.getA(),average);
-				//i1.setB(average);
-				//System.out.println("P at the right : i1="+i1.toString()+", i2="+i2.toString());
 			}
 		} 
 		else 
@@ -310,7 +306,7 @@ public class CANProtocol implements EDProtocol, Cloneable {
 					System.out.println("******************* processEvent : SHARE message ************************");
 					CANInterval p = (CANInterval)m.getBody();
 					CANInterval[] newZone = this.shareZone((this.getNodeZone())[0], (this.getNodeZone())[1], p);
-					this.setNodeZone(newZone[0],newZone[1]);
+					this.setNodeZone(newZone[2],newZone[3]);
 					CANMessage answer = new CANMessage(m.getReceiver(),m.getSender(),CANMessage.SHARE_ANS);
 					answer.setBody(newZone);
 					EDSimulator.add(0,answer,m.getSender(),protocolID);
@@ -321,6 +317,7 @@ public class CANProtocol implements EDProtocol, Cloneable {
 					System.out.println("**************** processEvent : SHARE ANSWER message *********************");
 					CANInterval[] zone = (CANInterval[])m.getBody();
 					System.out.println("New zone : ["+zone[0].toString()+" , "+zone[1].toString()+"]");
+					this.setNodeZone(zone[0],zone[1]);
 					System.out.println("");
 			}
         }

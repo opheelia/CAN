@@ -39,7 +39,7 @@ public class CANMessage {
 	private int type;
 	private Node sender;
 	private Node receiver;
-	private Object body; //not useful now but perhaps later
+	private Object body; 
 	
 	private static Random rnd;
 	private boolean already_init = false;

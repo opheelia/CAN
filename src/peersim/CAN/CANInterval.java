@@ -34,16 +34,16 @@ import java.io.*;
 public class CANInterval {
 	
 /*----------------------------------------------------------------------
- * Attributs
+ * Attributes
  * ---------------------------------------------------------------------
  */	
 	
-	//En 2 dimensions
+	//2 dimensions
 	private float a;
 	private float b;
 	
 /*----------------------------------------------------------------------
- * Constructeur
+ * Builder
  * ---------------------------------------------------------------------
  */
 	
@@ -53,7 +53,7 @@ public class CANInterval {
 	}
 
 /*----------------------------------------------------------------------
- * Méthodes
+ * Methods
  * ---------------------------------------------------------------------
  */
 	// Return true if two intervals abut
@@ -67,7 +67,7 @@ public class CANInterval {
 	
 	//Return true if two intervals overlap
 	public boolean isOverlapped(CANInterval interval){
-		//si interval contenu dans this ou this contenu dans interval
+		//if interval overlaps this or this overlaps interval
 		if(((this.a <= interval.a) && (this.b >= interval.b)) || ((interval.a <= this.a) && (interval.b >= this.b))){
 			return true;
 		} else {
@@ -91,7 +91,7 @@ public class CANInterval {
 	}
 	
 /*----------------------------------------------------------------------
- * Getters et setters
+ * Getter and setter
  * ---------------------------------------------------------------------
  */
 	
