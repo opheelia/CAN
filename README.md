@@ -1,5 +1,8 @@
 # CAN
 
+CAN implementation (only node insertion) for Peersim, with consideration of node's energy
+When a new node tries to join the network, if a node will miss energy soon, the new one takes his zone and information.
+
 To compile the program use make
 To run the program use make run
 
